@@ -1,260 +1,220 @@
-import { type FormEvent, useMemo, useState, type ReactNode } from "react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2, ArrowRight, Command } from "lucide-react";
+
+// shadcn/ui imports (assuming these are in your components/ui folder)
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
-  ArrowRight,
-  Github,
-  GitBranch,
-  Lock,
-  Mail,
-  ShieldCheck,
-  Sparkles,
-  Users,
-} from "lucide-react";
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 
-const gradients = [
-  "from-purple-600/20 via-fuchsia-500/10 to-blue-500/20",
-  "from-amber-500/20 via-orange-500/10 to-rose-500/20",
-  "from-emerald-500/20 via-teal-400/10 to-cyan-500/20",
-];
+// 1. Zod Schema for robust validation
+const signUpSchema = z.object({
+  email: z.string().email({ message: "E-mail inválido." }),
+  password: z.string().min(8, { message: "Mínimo de 8 caracteres." }),
+  name: z.string().min(2, { message: "Nome muito curto." }),
+});
 
-export default function SignUpPage() {
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+interface SignUpProps {
+  onNavigate: () => void;
+}
 
-  const bgGradient = useMemo(() => {
-    const index = Math.floor(Math.random() * gradients.length);
-    return gradients[index];
-  }, []);
+type SignUpFormValues = z.infer<typeof signUpSchema>;
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setMessage(null);
-    setLoading(true);
+export default function SignUp({ onNavigate }: SignUpProps) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const form = useForm<SignUpFormValues>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+    },
+  });
+
+  async function onSubmit(data: SignUpFormValues) {
+    setIsLoading(true);
+    // Simulate API call to your Golang backend
     setTimeout(() => {
-      setLoading(false);
-      setMessage(
-        "Pedido recebido! Em breve enviaremos um link para completar seu acesso.",
-      );
-    }, 900);
-  };
+      console.log("Payload para o backend:", data);
+      setIsLoading(false);
+    }, 2000);
+  }
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex items-center justify-center px-4 py-10">
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div
-          className={`absolute inset-10 blur-3xl rounded-full bg-gradient-to-r ${bgGradient}`}
-          aria-hidden
-        />
+    <div className="w-full h-screen lg:grid lg:grid-cols-2 overflow-hidden bg-background">
+      {/* LEFT COLUMN: The "Ousadia" Visual (Desktop) */}
+      <div className="hidden lg:flex flex-col justify-between relative bg-zinc-900 text-white p-10">
+        {/* Background Image with Overlay */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop"
+            alt="Abstract Architecture"
+            className="w-full h-full object-cover opacity-40 mix-blend-overlay"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/90 via-zinc-900/40 to-transparent" />
+        </div>
+
+        {/* Branding */}
+        <div className="relative z-10 flex items-center gap-2 text-lg font-bold tracking-tight">
+          <div className="bg-white text-black p-1 rounded-sm">
+            <Command size={18} />
+          </div>
+          <span>Vime Sistemas</span>
+        </div>
+
+        {/* The Quote / Social Proof */}
+        <div className="relative z-10 max-w-md">
+          <blockquote className="space-y-2">
+            <p className="text-2xl font-medium leading-normal animate-in slide-in-from-bottom-4 duration-1000">
+              "Software is the new architecture. We build the foundations for
+              the future of insurance."
+            </p>
+            <footer className="text-sm text-zinc-400 animate-in slide-in-from-bottom-5 duration-1000 delay-150">
+              &mdash; Internal Manifesto
+            </footer>
+          </blockquote>
+        </div>
       </div>
 
-      <div className="w-full max-w-6xl bg-card/70 backdrop-blur-xl border border-border/70 shadow-2xl rounded-3xl grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] overflow-hidden">
-        <section className="relative p-8 sm:p-10 lg:p-14">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="h-12 w-12 rounded-2xl bg-primary text-primary-foreground grid place-items-center font-semibold text-xl">
-              ZT
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground uppercase tracking-[0.18em]">
-                ZubiTask
-              </p>
-              <h1 className="text-2xl sm:text-3xl font-semibold">
-                Incident OS para times modernos
-              </h1>
-            </div>
-          </div>
-
-          <div className="space-y-5">
-            <Feature
-              icon={<ShieldCheck className="h-6 w-6 text-primary" />}
-              title="Segurança e governança"
-              description="Versionamento de incidentes, trilha de auditoria e cálculo automático de severidade."
-            />
-            <Feature
-              icon={<GitBranch className="h-6 w-6 text-primary" />}
-              title="Integração nativa com GitHub"
-              description="Sincronize issues, abra post-mortems e conecte PRs diretamente do seu fluxo de trabalho."
-            />
-            <Feature
-              icon={<Sparkles className="h-6 w-6 text-primary" />}
-              title="LLMs focados em incidentes"
-              description="Relatórios automáticos, timelines inteligentes e recomendações de mitigação em minutos."
-            />
-          </div>
-
-          <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Stat label="SLA cumprido" value="98,4%" />
-            <Stat label="Incidentes resolvidos" value="8.4K" />
-            <Stat label="Empresas atendidas" value="120+" />
-          </div>
-
-          <div className="mt-12 flex items-center gap-4 text-sm text-muted-foreground">
-            <Users className="h-5 w-5 text-primary" />
-            <p>
-              Times de engenharia, SRE e suporte usam ZubiTask para colaborar e
-              manter qualidade, mesmo sob pressão.
-            </p>
-          </div>
-        </section>
-
-        <section className="bg-card border-l border-border/60 p-8 sm:p-10 lg:p-12 flex flex-col justify-center">
-          <div className="mb-6">
-            <p className="text-sm font-medium text-muted-foreground uppercase tracking-[0.18em]">
-              Comece agora
-            </p>
-            <h2 className="text-2xl font-semibold">Crie sua conta</h2>
-            <p className="text-muted-foreground text-sm mt-1">
-              Leva menos de 2 minutos. Sem cartão de crédito.
+      {/* RIGHT COLUMN: The Form */}
+      <div className="flex items-center justify-center p-8 relative">
+        <div className="mx-auto w-full max-w-[400px] flex flex-col justify-center space-y-6 animate-in fade-in slide-in-from-right-8 duration-700">
+          <div className="flex flex-col space-y-2 text-center lg:text-left">
+            <h1 className="text-3xl font-bold tracking-tighter">
+              Crie sua conta
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              Entre com seus dados para acessar o ecossistema.
             </p>
           </div>
 
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field
-                label="Nome completo"
-                name="name"
-                placeholder="Ana Silva"
-                required
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Nome completo</Label>
+              <Input
+                id="name"
+                placeholder="Ex: João da Silva"
+                className="h-11 bg-zinc-50/50 dark:bg-zinc-900/50"
+                {...form.register("name")}
               />
-              <Field
-                label="Empresa"
-                name="company"
-                placeholder="Acme Software"
-                required
-              />
+              {form.formState.errors.name && (
+                <p className="text-xs text-red-500 font-medium">
+                  {form.formState.errors.name.message}
+                </p>
+              )}
             </div>
 
-            <Field
-              label="Email de trabalho"
-              name="email"
-              type="email"
-              placeholder="ana@empresa.com"
-              required
-              icon={<Mail className="h-4 w-4 text-muted-foreground" />}
-            />
-
-            <Field
-              label="Senha"
-              name="password"
-              type="password"
-              placeholder="Crie uma senha forte"
-              icon={<Lock className="h-4 w-4 text-muted-foreground" />}
-              required
-            />
-
-            <div className="flex items-start gap-3 rounded-2xl border border-border/80 bg-secondary/40 px-4 py-3">
-              <input
-                id="security"
-                name="security"
-                type="checkbox"
-                className="mt-1 h-4 w-4 accent-primary"
+            <div className="space-y-2">
+              <Label htmlFor="email">E-mail corporativo</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="nome@empresa.com"
+                className="h-11 bg-zinc-50/50 dark:bg-zinc-900/50"
+                {...form.register("email")}
               />
-              <label htmlFor="security" className="text-sm leading-tight">
-                Concordo em receber comunicações sobre segurança e novidades da
-                ZubiTask.
-              </label>
+              {form.formState.errors.email && (
+                <p className="text-xs text-red-500 font-medium">
+                  {form.formState.errors.email.message}
+                </p>
+              )}
             </div>
 
-            <button
+            <div className="space-y-2">
+              <Label htmlFor="password">Senha</Label>
+              <Input
+                id="password"
+                type="password"
+                className="h-11 bg-zinc-50/50 dark:bg-zinc-900/50"
+                {...form.register("password")}
+              />
+              {form.formState.errors.password && (
+                <p className="text-xs text-red-500 font-medium">
+                  {form.formState.errors.password.message}
+                </p>
+              )}
+            </div>
+
+            <Button
               type="submit"
-              disabled={loading}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-primary text-primary-foreground px-4 py-3 text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-60"
+              className="w-full h-11 text-base group"
+              disabled={isLoading}
             >
-              {loading ? "Enviando..." : "Criar conta"}
-              {!loading && <ArrowRight className="h-4 w-4" />}
-            </button>
-
-            <button
-              type="button"
-              className="w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-border/80 bg-secondary/40 px-4 py-3 text-sm font-semibold hover:bg-secondary/60 transition-colors"
-            >
-              <Github className="h-4 w-4" />
-              Continuar com GitHub
-            </button>
-
-            {message && (
-              <div className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
-                {message}
-              </div>
-            )}
-
-            <p className="text-xs text-muted-foreground text-center">
-              Ao continuar, você concorda com os Termos de Uso e Política de
-              Privacidade.
-            </p>
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Começar agora
+              {!isLoading && (
+                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+              )}
+            </Button>
           </form>
-        </section>
-      </div>
-    </div>
-  );
-}
 
-type FieldProps = {
-  label: string;
-  name: string;
-  placeholder?: string;
-  type?: string;
-  required?: boolean;
-  icon?: ReactNode;
-};
+          {/* Social / Divider */}
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                Já tem acesso?
+              </span>
+            </div>
+          </div>
 
-function Field({
-  label,
-  name,
-  placeholder,
-  type = "text",
-  required,
-  icon,
-}: FieldProps) {
-  return (
-    <label className="flex flex-col gap-1 text-sm font-medium">
-      <span className="text-foreground">{label}</span>
-      <div className="relative">
-        {icon && (
-          <span className="absolute left-3 top-1/2 -translate-y-1/2">
-            {icon}
-          </span>
-        )}
-        <input
-          className="w-full rounded-xl border border-border/80 bg-card/60 px-3 py-3 text-sm placeholder:text-muted-foreground/70 focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
-          name={name}
-          type={type}
-          placeholder={placeholder}
-          required={required}
-          style={icon ? { paddingLeft: "2.5rem" } : undefined}
-        />
-      </div>
-    </label>
-  );
-}
+          <Button
+            variant="ghost"
+            className="w-full h-11 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            type="button"
+            onClick={onNavigate}
+          >
+            Fazer Login
+          </Button>
 
-type StatProps = {
-  label: string;
-  value: string;
-};
-
-function Stat({ label, value }: StatProps) {
-  return (
-    <div className="rounded-2xl border border-border/70 bg-secondary/40 px-4 py-3">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="text-xl font-semibold">{value}</p>
-    </div>
-  );
-}
-
-type FeatureProps = {
-  icon: ReactNode;
-  title: string;
-  description: string;
-};
-
-function Feature({ icon, title, description }: FeatureProps) {
-  return (
-    <div className="flex items-start gap-3">
-      <div className="h-10 w-10 rounded-xl bg-secondary/60 border border-border/80 grid place-items-center">
-        {icon}
-      </div>
-      <div>
-        <h3 className="text-base font-semibold">{title}</h3>
-        <p className="text-sm text-muted-foreground">{description}</p>
+          {/* THE DRAWER INTEGRATION */}
+          <div className="pt-4 text-center">
+            <Drawer>
+              <DrawerTrigger asChild>
+                <button className="text-sm text-muted-foreground hover:text-primary underline underline-offset-4 transition-colors">
+                  Termos de uso e Privacidade
+                </button>
+              </DrawerTrigger>
+              <DrawerContent>
+                <div className="mx-auto w-full max-w-sm">
+                  <DrawerHeader>
+                    <DrawerTitle>Termos de Uso</DrawerTitle>
+                    <DrawerDescription>
+                      Ao criar uma conta na Vime Sistemas, você concorda com
+                      nossa política de processamento de dados.
+                    </DrawerDescription>
+                  </DrawerHeader>
+                  <div className="p-4 pb-0 text-sm text-muted-foreground space-y-2">
+                    <p>1. Seus dados são criptografados.</p>
+                    <p>2. Não compartilhamos informações com terceiros.</p>
+                    <p>3. Acesso sujeito a aprovação administrativa.</p>
+                  </div>
+                  <DrawerFooter>
+                    <Button>Entendi</Button>
+                    <DrawerClose asChild>
+                      <Button variant="outline">Fechar</Button>
+                    </DrawerClose>
+                  </DrawerFooter>
+                </div>
+              </DrawerContent>
+            </Drawer>
+          </div>
+        </div>
       </div>
     </div>
   );
